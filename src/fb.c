@@ -56,8 +56,10 @@ int tfb_acquire_fb(u32 flags, const char *fb_device, const char *tty_device)
    if (!fb_device)
       fb_device = DEFAULT_FB_DEVICE;
 
+#if 0
    if (!tty_device)
       tty_device = DEFAULT_TTY_DEVICE;
+#endif
 
    fbfd = open(fb_device, O_RDWR);
 
@@ -90,19 +92,22 @@ int tfb_acquire_fb(u32 flags, const char *fb_device, const char *tty_device)
       goto out;
    }
 
-   __tfb_ttyfd = open(tty_device, O_RDWR);
+   if (tty_device)
+   {
+	   __tfb_ttyfd = open(tty_device, O_RDWR);
 
-   if (__tfb_ttyfd < 0) {
-      ret = TFB_ERR_OPEN_TTY;
-      goto out;
-   }
+	   if (__tfb_ttyfd < 0) {
+		  ret = TFB_ERR_OPEN_TTY;
+		  goto out;
+	   }
 
-   if (!(flags & TFB_FL_NO_TTY_KD_GRAPHICS)) {
+	   if (!(flags & TFB_FL_NO_TTY_KD_GRAPHICS)) {
 
-      if (ioctl(__tfb_ttyfd, KDSETMODE, KD_GRAPHICS) != 0) {
-         ret = TFB_ERR_TTY_GRAPHIC_MODE;
-         goto out;
-      }
+		  if (ioctl(__tfb_ttyfd, KDSETMODE, KD_GRAPHICS) != 0) {
+			 ret = TFB_ERR_TTY_GRAPHIC_MODE;
+			 goto out;
+		  }
+	   }
    }
 
    __fb_real_buffer = mmap(NULL, __fb_size,
